@@ -37,7 +37,11 @@ pub fn agent_model_picker(ui: &mut Ui, picker: &mut AgentModelPicker) -> bool {
     if models.is_empty() {
         ui.label(trf("No chat models are visible in {agent}. Check its setup, then reload.", &[("agent", &agent)]));
     }
-    let default = if picker.context.backend.config.model == "opencode" { tr("OpenCode default") } else { tr("Model default") };
+    let default = match picker.context.backend.config.model.as_str() {
+        "opencode" => tr("OpenCode default"),
+        "antigravity" => tr("Antigravity default"),
+        _ => tr("Model default"),
+    };
     let selected = picker.model.as_deref().unwrap_or(&default);
     let response = egui::ComboBox::from_id_salt(("agent-model", &picker.context.backend.config.name))
         .icon(widgets::combo_icon)
@@ -99,6 +103,7 @@ pub struct Choice {
 
 fn detail(b: &BackendConfig) -> String {
     match b.kind {
+        BackendKind::AgentCli if b.model == "antigravity" => tr("Antigravity CLI · Deep mode only"),
         BackendKind::AgentCli => tr("Coding agent app"),
         k if b.model.is_empty() => tr(k.title()),
         k => format!("{} · {}", tr(k.title()), b.model),
@@ -387,7 +392,7 @@ pub fn need_builder_modal(app: &mut CraftApp, ui: &mut Ui, start: bool, close: &
             ui.add(
                 egui::Label::new(
                     RichText::new(tr(
-                        "Building needs a coding agent on this computer (Claude Code, Codex or Gemini CLI: install one and sign in to it once in its own window), or an AI with an API key. Craft Anything never sees your account.",
+                        "Building needs a coding agent on this computer (Claude Code, Codex, Gemini CLI or Antigravity: install it and sign in through its own CLI or app), or an AI with an API key. Craft Anything never sees your account.",
                     ))
                     .color(t.text_dim),
                 )
