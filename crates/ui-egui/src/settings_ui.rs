@@ -1113,7 +1113,10 @@ mod tests {
             theme::install_fonts(ui.ctx());
             crate::builders::agent_model_picker(ui, &mut picker);
         });
+        harness.get_by_label("Model").click();
+        harness.run_steps(3);
         harness.get_by_label("Antigravity default");
+        harness.get_by_label("Gemini 4 Argon · gemini-4-argon");
         harness.get_by_label("Thinking depth");
     }
 
