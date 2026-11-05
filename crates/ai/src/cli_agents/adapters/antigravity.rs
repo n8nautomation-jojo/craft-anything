@@ -1,7 +1,8 @@
 //! Antigravity (`agy`). Flags are checked against `agy --help`.
 //!
 //! Antigravity runs prompts non-interactively with `--output-format stream-json -p <prompt>`.
-//! In builder mode, `--dangerously-skip-permissions` is passed so tool requests proceed without prompting.
+//! The adapter deliberately preserves Antigravity's own permission configuration. It never forces
+//! `always-proceed`: that flag approves every tool call, bypassing the person's permission policy.
 
 use super::*;
 
@@ -14,9 +15,8 @@ impl AgentAdapter for Antigravity {
 
     fn args(&self, cx: &ArgsCx) -> Vec<String> {
         let mut a = cx.options.args.clone();
-        if cx.builder {
-            a.push("--dangerously-skip-permissions".into());
-        }
+        // Do not enable `--dangerously-skip-permissions` for builds. It sets `always-proceed`
+        // and silently bypasses the permissions configured by the person in Antigravity.
         if let Some(m) = &cx.options.cli_model {
             a.extend(["--model".into(), m.clone()]);
         }
@@ -37,6 +37,12 @@ impl AgentAdapter for Antigravity {
 
     fn resumes(&self) -> bool {
         true
+    }
+
+    /// The headless CLI has no verified, repository-enforced read-only/fork path for questions.
+    /// Keep questions refused by the shared runner rather than trusting `--mode plan`.
+    fn answers_questions(&self) -> bool {
+        false
     }
 
     fn parse(&self, p: &mut StreamParser, v: &Value) -> Vec<AgentEvent> {
@@ -84,12 +90,11 @@ impl AgentAdapter for Antigravity {
                 p.saw_result = true;
                 if let Some(res) = v.get("result") {
                     if let Some(u) = res.get("usage") {
-                        let in_tok = u.get("input_tokens").and_then(Value::as_u64).unwrap_or(0);
-                        let cache_tok = u.get("cache_read_tokens").and_then(Value::as_u64).unwrap_or(0);
-                        p.input_tokens = in_tok.saturating_add(cache_tok);
-                        let out_tok = u.get("output_tokens").and_then(Value::as_u64).unwrap_or(0);
-                        let think_tok = u.get("thinking_tokens").and_then(Value::as_u64).unwrap_or(0);
-                        p.output_tokens = out_tok.saturating_add(think_tok);
+                        // Antigravity reports cache-read and thinking counts as breakdowns of
+                        // input_tokens/output_tokens, not extra tokens. Adding them again
+                        // overstates usage, so retain the documented aggregate counters only.
+                        p.input_tokens = u.get("input_tokens").and_then(Value::as_u64).unwrap_or(0);
+                        p.output_tokens = u.get("output_tokens").and_then(Value::as_u64).unwrap_or(0);
                     }
                     if res.get("status").and_then(Value::as_str) == Some("ERROR") {
                         let why = res.get("error").or_else(|| res.get("response")).and_then(Value::as_str).unwrap_or("run failed");
@@ -128,7 +133,6 @@ mod tests {
             [
                 "--add-dir",
                 "/repo",
-                "--dangerously-skip-permissions",
                 "--model",
                 "Gemini 3.8 Flash (Medium)",
                 "--conversation",
@@ -140,6 +144,8 @@ mod tests {
             ]
         );
         assert!(Antigravity.resumes());
+        assert!(!Antigravity.answers_questions(), "questions stay blocked until a real read-only/fork contract exists");
+        assert!(!args(true, None, &builder_opts).iter().any(|arg| arg == "--dangerously-skip-permissions"));
         assert_eq!(Antigravity.required_flags(), (&["--help"][..], &["--output-format", "stream-json"][..]));
         assert!(AgentAdapters::built_in().for_agent("antigravity").ids().contains(&"antigravity"));
         assert!(AgentAdapters::built_in().for_agent("agy").ids().contains(&"agy"));
@@ -243,8 +249,8 @@ mod tests {
         let evs = p.line(&result.to_string());
         assert!(evs.is_empty());
         assert!(p.saw_result);
-        assert_eq!(p.input_tokens, 120);
-        assert_eq!(p.output_tokens, 60);
+        assert_eq!(p.input_tokens, 100, "cache_read_tokens is an input breakdown, not an additional count");
+        assert_eq!(p.output_tokens, 50, "thinking_tokens is an output breakdown, not an additional count");
 
         let err = json!({
             "event": "error",
