@@ -213,7 +213,9 @@ fn brain_card(app: &mut CraftApp, ui: &mut Ui, d: &Detected) {
                     if widgets::secondary(ui, None, "Use this").clicked() {
                         app.choose_backend(Some(name.clone()));
                     }
-                } else if !d.needs_key && widgets::primary(ui, "Use this").clicked() {
+                } else if !d.needs_key
+                    && widgets::primary(ui, if d.suggestion.model == "antigravity" { "Add Antigravity" } else { "Use this" }).clicked()
+                {
                     app.add_backend(d.suggestion.clone(), None);
                 }
             });
