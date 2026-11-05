@@ -8,7 +8,8 @@ The adapter uses the CLI's documented newline-delimited JSON input and output mo
 
 - It sends one `user` event to standard input with `--input-format stream-json`.
 - It reads `--output-format stream-json` incrementally. The parser handles `init`, `step_update`, `result`, and `error` events, including response deltas and tool start/finish events.
-- A configured `cli_model` is passed with `--model`. A saved builder conversation is continued with `--conversation`.
+- The Settings → AI model picker runs `agy models` on the selected local or SSH installation. It groups model slugs into a base model and the effort variants the CLI actually lists. The chosen model and optional effort are passed with `--model` and `--effort`; selections are checked against the live catalogue before saving and again before a run.
+- A saved builder conversation is continued with `--conversation`.
 - Prompt text is not placed in the operating-system command line; it is serialized as one JSON input line. This avoids the platform command-line length limit for long prompts.
 
 The usage counters shown by Craft Anything use the CLI's aggregate `input_tokens` and `output_tokens`. The separate `cache_read_tokens` and `thinking_tokens` fields are breakdowns and are not added a second time.
@@ -34,7 +35,7 @@ See Google's [MCP configuration guide](https://antigravity.google/docs/mcp?tab=c
 
 Headless runs use the CLI's cached credentials. Sign in through an interactive Antigravity CLI session first, following Google's [authentication instructions](https://antigravity.google/docs/cli/headless).
 
-Craft Anything launches the user's installed `agy` executable. It does not extract, copy, persist, or forward Google OAuth tokens, and it does not create a separate Google login flow. The current integration does not independently verify the account's sign-in state before a run; authentication failures are reported from the CLI process rather than being represented as a successful preflight.
+Craft Anything launches the user's installed `agy` executable. It does not extract, copy, persist, or forward Google OAuth tokens, and it does not create a separate Google login flow. In Settings → AI, **Check connection & models** invokes `agy models` with bounded time and output; if the CLI can list the signed-in account's models, the picker displays them. This is a real CLI request, not a token inspection or an independent OAuth status API. Authentication failures are returned as connection errors with a sign-in hint.
 
 ## Permission and safety boundaries
 
@@ -50,8 +51,8 @@ Antigravity is deliberately not enabled for Craft Anything's read-only project-q
 
 ## Current limitations
 
-- No live authentication-status check in Craft Anything.
-- No Antigravity-specific model catalogue or reasoning-effort picker yet; a configured `cli_model` is forwarded, otherwise the CLI's own default applies.
+- No separate OAuth-status API or account/token inspection; the connection check uses the actual `agy models` command.
+- Model discovery and per-model effort choices come from the installed CLI's output; the app does not maintain a hard-coded model catalogue.
 - No read-only project-question support.
 - No unified mapping from Craft Anything's Deep-mode approval inbox to Antigravity's native permission ACL; Clean room is blocked before launch.
 - No live CLI run has been claimed as part of this change; unit tests and platform builds must be run in the repository CI or a development environment with Rust installed.
