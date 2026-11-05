@@ -402,6 +402,8 @@ fn parse_models(text: &str) -> Result<Vec<models::AgentModel>, ToolError> {
         let Some(slug) = fields.next() else { continue };
         let name = fields.collect::<Vec<_>>().join(" ");
         if name.is_empty()
+            || name.ends_with(':')
+            || matches!(slug.to_ascii_lowercase().as_str(), "available" | "model" | "models")
             || !slug.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | '/'))
         {
             continue;
