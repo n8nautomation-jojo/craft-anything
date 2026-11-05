@@ -223,7 +223,7 @@ fn brain_card(app: &mut CraftApp, ui: &mut Ui, d: &Detected) {
         if d.suggestion.model == "antigravity" {
             ui.add_space(4.0);
             ui.label(
-                RichText::new(tr("After adding Antigravity, sign in with Google through its own CLI or app. You can check the connection and choose models later in Settings → AI."))
+                RichText::new(tr("After adding Antigravity, sign in with Google through its own CLI or app. You can load its available model choices later in Settings → AI."))
                     .color(t.text_faint)
                     .size(theme::CAPTION),
             );
