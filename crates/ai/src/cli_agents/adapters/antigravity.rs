@@ -62,6 +62,10 @@ impl AgentAdapter for Antigravity {
         false
     }
 
+    fn requires_deep_mode(&self) -> bool {
+        true
+    }
+
     fn parse(&self, p: &mut StreamParser, v: &Value) -> Vec<AgentEvent> {
         let mut out = Vec::new();
         let event = v.get("event").and_then(Value::as_str).unwrap_or_default();
@@ -162,6 +166,7 @@ mod tests {
         );
         assert!(Antigravity.resumes());
         assert!(!Antigravity.answers_questions(), "questions stay blocked until a real read-only/fork contract exists");
+        assert!(Antigravity.requires_deep_mode(), "Antigravity is not yet governed by Clean room approvals");
         assert!(!args(true, None, &builder_opts).iter().any(|arg| arg == "--dangerously-skip-permissions"));
         assert!(Antigravity.prompt_on_stdin());
         let input: Value = serde_json::from_str(&Antigravity.stdin_text("PRE ", "analyse repo")).unwrap();
