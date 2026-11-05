@@ -42,7 +42,7 @@ The adapter never adds `--dangerously-skip-permissions`. Google's CLI documentat
 
 There is an important headless-mode limitation: an action that requires an interactive approval prompt but cannot obtain one is soft-denied by Antigravity. The process may continue and exit successfully while reporting the denied action on `stderr`. Configure only narrowly scoped permission rules in Antigravity itself when a task requires them; Craft Anything does not rewrite the user's Antigravity permission settings. See Google's [headless permission behaviour](https://antigravity.google/docs/cli/headless) and [fine-grained CLI permissions](https://antigravity.google/docs/permissions?tab=cli).
 
-This adapter is not yet wired into Craft Anything's cross-agent approval contract. In particular, it does not guarantee that Clean room restrictions or Deep-mode tool boundaries are enforced by Antigravity's own file, command, browser, or MCP tools. Clean room is not an operating-system sandbox. Treat this integration as experimental until the common approval/capability contract in roadmap R2.2 is completed.
+This adapter is not yet wired into Craft Anything's cross-agent approval contract. Craft Anything therefore refuses to start Antigravity at all while the project is in Clean room; it returns a clear error before launching the CLI. Antigravity can run only after the person explicitly switches the project to Deep mode. Deep mode is not a guarantee that Antigravity's own tools are routed through Craft Anything's approval inbox, so the CLI's own permission rules still matter. Clean room is not an operating-system sandbox. Treat this integration as experimental until the common approval/capability contract in roadmap R2.2 is completed.
 
 ## Questions about a build
 
