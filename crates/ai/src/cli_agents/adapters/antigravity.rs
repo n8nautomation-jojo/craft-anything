@@ -23,12 +23,23 @@ impl AgentAdapter for Antigravity {
         if let Some(r) = cx.resume {
             a.extend(["--conversation".into(), r.to_string()]);
         }
-        a.extend(["--output-format".into(), "stream-json".into(), "-p".into(), format!("{}{}", cx.preamble, cx.prompt)]);
+        // Stream input avoids command-line length limits (notably on Windows) and matches the
+        // CLI's documented one-message NDJSON input protocol.
+        a.extend(["--input-format".into(), "stream-json".into(), "--output-format".into(), "stream-json".into()]);
         a
     }
 
+    fn prompt_on_stdin(&self) -> bool {
+        true
+    }
+
+    fn stdin_text(&self, preamble: &str, prompt: &str) -> String {
+        let message = format!("{preamble}{prompt}");
+        format!("{}\\n", json!({"event": "user", "message": {"content": message}}))
+    }
+
     fn required_flags(&self) -> (&'static [&'static str], &'static [&'static str]) {
-        (&["--help"], &["--output-format", "stream-json"])
+        (&["--help"], &["--input-format", "--output-format", "stream-json"])
     }
 
     fn streams_json(&self) -> bool {
@@ -37,6 +48,12 @@ impl AgentAdapter for Antigravity {
 
     fn resumes(&self) -> bool {
         true
+    }
+
+    /// The headless CLI has no verified, repository-enforced read-only/fork path for questions.
+    /// Keep questions refused by the shared runner rather than trusting `--mode plan`.
+    fn answers_questions(&self) -> bool {
+        false
     }
 
     /// The headless CLI has no verified, repository-enforced read-only/fork path for questions.
@@ -124,7 +141,7 @@ mod tests {
     #[test]
     fn antigravity_args_construction() {
         let default_opts = BackendOptions::default();
-        assert_eq!(args(false, None, &default_opts), ["--output-format", "stream-json", "-p", "PRE analyse repo"]);
+        assert_eq!(args(false, None, &default_opts), ["--input-format", "stream-json", "--output-format", "stream-json"]);
 
         let builder_opts =
             BackendOptions { cli_model: Some("Gemini 3.8 Flash (Medium)".into()), args: vec!["--add-dir".into(), "/repo".into()], ..Default::default() };
@@ -137,15 +154,19 @@ mod tests {
                 "Gemini 3.8 Flash (Medium)",
                 "--conversation",
                 "conv-123",
-                "--output-format",
+                "--input-format",
                 "stream-json",
-                "-p",
-                "PRE analyse repo"
+                "--output-format",
+                "stream-json"
             ]
         );
         assert!(Antigravity.resumes());
         assert!(!Antigravity.answers_questions(), "questions stay blocked until a real read-only/fork contract exists");
         assert!(!args(true, None, &builder_opts).iter().any(|arg| arg == "--dangerously-skip-permissions"));
+        assert!(Antigravity.prompt_on_stdin());
+        let input: Value = serde_json::from_str(&Antigravity.stdin_text("PRE ", "analyse repo")).unwrap();
+        assert_eq!(input["event"], "user");
+        assert_eq!(input["message"]["content"], "PRE analyse repo");
         assert_eq!(Antigravity.required_flags(), (&["--help"][..], &["--output-format", "stream-json"][..]));
         assert!(AgentAdapters::built_in().for_agent("antigravity").ids().contains(&"antigravity"));
         assert!(AgentAdapters::built_in().for_agent("agy").ids().contains(&"agy"));
