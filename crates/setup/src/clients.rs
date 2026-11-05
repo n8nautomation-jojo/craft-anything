@@ -349,11 +349,13 @@ pub fn clients(host: &Host) -> Vec<Client> {
         "antigravity",
         "Antigravity",
         ag.join("mcp_config.json"),
-        vec![ag.clone(), ag_cli],
+        // A generic .gemini/config directory can belong to the legacy Gemini CLI.
+        // Use the Antigravity CLI-specific directory for detection and skill installation.
+        vec![ag_cli.clone()],
         Format::Jsonc,
         vec!["mcpServers"],
         Shape::Plain,
-        Some(ag.join("skills")),
+        Some(ag_cli.join("skills")),
     );
 
     // Grok Build
@@ -498,6 +500,24 @@ mod tests {
         let of = |id: &str| cs.iter().find(|c| c.id == id).unwrap();
         assert_eq!(of("kimi_code").config, PathBuf::from("/x/kimi/mcp.json"));
         assert_eq!(of("factory_droid").config, PathBuf::from("/x/home/.factory/mcp.json"));
+    }
+
+    #[test]
+    fn antigravity_uses_cli_paths_and_ignores_generic_gemini_config() {
+        let dir = tempfile::tempdir().unwrap();
+        let home = dir.path();
+        let host = Host::with_home(home);
+        let client = clients(&host).into_iter().find(|c| c.id == "antigravity").unwrap();
+
+        assert_eq!(client.config, home.join(".gemini/config/mcp_config.json"));
+        assert_eq!(client.skills_dir, home.join(".gemini/antigravity-cli/skills"));
+
+        // A legacy Gemini configuration directory is not proof that Antigravity is installed.
+        std::fs::create_dir_all(home.join(".gemini/config")).unwrap();
+        assert!(!client.detected());
+
+        std::fs::create_dir_all(home.join(".gemini/antigravity-cli")).unwrap();
+        assert!(client.detected());
     }
 
     #[test]
