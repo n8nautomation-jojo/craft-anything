@@ -1085,10 +1085,47 @@ mod tests {
     }
 
     #[test]
+    fn antigravity_model_picker_shows_its_default_and_cli_model_name() {
+        use craft_anything_ai::{AgentModel, BackendEntry, ModelContext};
+        use egui_kittest::{Harness, kittest::Queryable};
+        let context = ModelContext {
+            backend: BackendEntry {
+                config: BackendConfig {
+                    name: "Antigravity".into(),
+                    kind: BackendKind::AgentCli,
+                    model: "antigravity".into(),
+                    base_url: None,
+                    ssh_host: None,
+                    enabled: true,
+                },
+                options: Default::default(),
+            },
+            directory: None,
+        };
+        let mut picker = AgentModelPicker {
+            request: 1,
+            context,
+            model: None,
+            thinking: None,
+            result: Some(Ok(vec![AgentModel {
+                id: "gemini-4-argon".into(),
+                name: "Gemini 4 Argon".into(),
+                thinking: vec![craft_anything_ai::Effort::Medium, craft_anything_ai::Effort::High],
+            }])),
+        };
+        let harness = Harness::builder().build_ui(move |ui| {
+            theme::install_fonts(ui.ctx());
+            crate::builders::agent_model_picker(ui, &mut picker);
+        });
+        harness.get_by_label("Antigravity default");
+        harness.get_by_label("Thinking depth");
+    }
+
+    #[test]
     fn shared_picker_warnings_name_the_configured_agent() {
         use craft_anything_ai::{BackendEntry, ModelContext};
         use egui_kittest::{Harness, kittest::Queryable};
-        for (agent, name) in [("copilot", "GitHub Copilot"), ("opencode", "OpenCode")] {
+        for (agent, name) in [("copilot", "GitHub Copilot"), ("opencode", "OpenCode"), ("antigravity", "Antigravity")] {
             let context = ModelContext {
                 backend: BackendEntry {
                     config: BackendConfig {
