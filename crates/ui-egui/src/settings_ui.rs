@@ -739,6 +739,14 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                     }
                 });
             });
+            if d.suggestion.model == "antigravity" && !configured {
+                ui.add_space(4.0);
+                ui.label(
+                    RichText::new(tr("After adding Antigravity, sign in through its own CLI or app. Then use Check connection & models above to load your available models."))
+                        .color(t.text_faint)
+                        .size(theme::CAPTION),
+                );
+            }
             // A subscription key is worth pasting even when the environment already has one, so a
             // different key can be used without restarting the app.
             let pastable = d.needs_key || d.suggestion.base_url.as_deref().is_some_and(craft_anything_ai::openai::is_opencode_go);
