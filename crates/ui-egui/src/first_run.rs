@@ -213,11 +213,21 @@ fn brain_card(app: &mut CraftApp, ui: &mut Ui, d: &Detected) {
                     if widgets::secondary(ui, None, "Use this").clicked() {
                         app.choose_backend(Some(name.clone()));
                     }
-                } else if !d.needs_key && widgets::primary(ui, "Use this").clicked() {
+                } else if !d.needs_key
+                    && widgets::primary(ui, if d.suggestion.model == "antigravity" { "Add Antigravity" } else { "Use this" }).clicked()
+                {
                     app.add_backend(d.suggestion.clone(), None);
                 }
             });
         });
+        if d.suggestion.model == "antigravity" {
+            ui.add_space(4.0);
+            ui.label(
+                RichText::new(tr("After adding Antigravity, sign in with Google through its own CLI or app. You can load its available model choices later in Settings → AI."))
+                    .color(t.text_faint)
+                    .size(theme::CAPTION),
+            );
+        }
         // A subscription key is worth pasting even when the environment already has one, so a
         // different key can be used without restarting the app.
         let pastable = d.needs_key || d.suggestion.base_url.as_deref().is_some_and(craft_anything_ai::openai::is_opencode_go);

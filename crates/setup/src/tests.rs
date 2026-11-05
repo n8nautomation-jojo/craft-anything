@@ -128,6 +128,32 @@ fn full_setup_preserves_comments_backs_up_and_is_idempotent() {
 }
 
 #[test]
+fn antigravity_setup_preserves_existing_mcp_and_installs_shared_skill() {
+    let fx = fixture();
+    let home = &fx.host.home;
+    let cli_dir = home.join(".gemini/antigravity-cli");
+    let config = home.join(".gemini/config/mcp_config.json");
+    std::fs::create_dir_all(&cli_dir).unwrap();
+    std::fs::create_dir_all(config.parent().unwrap()).unwrap();
+
+    let original = "// keep this Antigravity config\n{\n  \"mcpServers\": {\n    \"existing\": { \"command\": \"existing-server\" }\n  }\n}\n";
+    std::fs::write(&config, original).unwrap();
+
+    let p = plan(&fx.host, &req(&fx, &["antigravity"])).unwrap();
+    assert!(!p.blocked, "{p:?}");
+    assert_eq!(apply(&p).status, "configured");
+
+    let updated = read(&config);
+    assert!(updated.contains("// keep this Antigravity config"));
+    assert!(updated.contains("existing-server"));
+    assert!(updated.contains("craft-anything-cli"));
+    assert_eq!(read(config.with_extension("json.craft-anything.backup")), original);
+
+    // The shared global skills path is consumed by both Antigravity CLI and the app.
+    assert!(home.join(".gemini/config/skills/craft-anything/SKILL.md").exists());
+}
+
+#[test]
 fn malformed_config_blocks_plan_and_uninstall() {
     let fx = fixture();
     let h = &fx.host.home;

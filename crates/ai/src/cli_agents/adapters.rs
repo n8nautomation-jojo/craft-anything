@@ -131,6 +131,11 @@ pub trait AgentAdapter: Send + Sync {
     fn answers_questions(&self) -> bool {
         false
     }
+    /// The adapter cannot enforce Craft Anything's Clean room boundary and may only run when
+    /// the person explicitly selects Deep mode. This is a fail-closed exception for native CLIs.
+    fn requires_deep_mode(&self) -> bool {
+        false
+    }
     /// The message goes in on stdin, not in argv: a long one passes Windows' command-line limit
     /// ("The filename or extension is too long", os error 206, #402).
     fn prompt_on_stdin(&self) -> bool {

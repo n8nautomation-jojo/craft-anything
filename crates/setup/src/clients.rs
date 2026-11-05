@@ -496,10 +496,13 @@ mod tests {
         let mut moved = Host::with_home("/home/u");
         moved.env.insert("KIMI_CODE_HOME".into(), "/x/kimi".into());
         moved.env.insert("FACTORY_HOME_OVERRIDE".into(), "/x/home".into());
+        moved.env.insert("ANTIGRAVITY_HOME".into(), "/x/antigravity".into());
         let cs = clients(&moved);
         let of = |id: &str| cs.iter().find(|c| c.id == id).unwrap();
         assert_eq!(of("kimi_code").config, PathBuf::from("/x/kimi/mcp.json"));
         assert_eq!(of("factory_droid").config, PathBuf::from("/x/home/.factory/mcp.json"));
+        assert_eq!(of("antigravity").config, PathBuf::from("/x/antigravity/.gemini/config/mcp_config.json"));
+        assert_eq!(of("antigravity").skills_dir, PathBuf::from("/x/antigravity/.gemini/config/skills"));
     }
 
     #[test]

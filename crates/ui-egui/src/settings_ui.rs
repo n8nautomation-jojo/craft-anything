@@ -373,6 +373,15 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                             }
                         });
                     }
+                    if b.model == "antigravity" {
+                        ui.add_space(4.0);
+                        let sign_in_hint = if b.ssh_host.as_deref().is_some_and(|host| !host.trim().is_empty()) {
+                            "The Antigravity CLI must be installed on this remote computer and signed in there. Load models below to read the CLI's available choices."
+                        } else {
+                            "Sign in with your Google account in Antigravity App or run `agy` in a terminal once. Then load the CLI's model choices below. Craft Anything never reads or stores your Google sign-in credentials."
+                        };
+                        ui.label(RichText::new(tr(sign_in_hint)).color(t.text_faint).size(theme::CAPTION));
+                    }
                     // The folder it keeps its sign-in in (Claude Code's CLAUDE_CONFIG_DIR), typed
                     // so `~/` and hidden folders work, here or over SSH: another folder is another
                     // account. Saved on Enter or when the field is left; empty is its usual one.
@@ -430,7 +439,11 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                         let current = options
                             .and_then(|o| o.cli_model.as_deref())
                             .map(str::to_string)
-                            .unwrap_or_else(|| if b.model == "opencode" { tr("OpenCode default") } else { tr("Model default") });
+                            .unwrap_or_else(|| match b.model.as_str() {
+                                "opencode" => tr("OpenCode default"),
+                                "antigravity" => tr("Antigravity default"),
+                                _ => tr("Model default"),
+                            });
                         ui.label(trf("Model: {model}", &[("model", &current)]));
                         let thinking = options.and_then(|o| o.cli_thinking).map(|d| d.title().to_string()).unwrap_or_else(|| tr("Model default"));
                         ui.label(format!("{}: {thinking}", tr("Thinking depth")));
@@ -450,8 +463,11 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                                     close_picker = true;
                                 }
                             });
-                        } else if widgets::link(ui, "Change…").clicked() {
-                            pick_agent_model = Some(b.name.clone());
+                        } else {
+                            let label = if b.model == "antigravity" { "Load models" } else { "Change…" };
+                            if widgets::link(ui, label).clicked() {
+                                pick_agent_model = Some(b.name.clone());
+                            }
                         }
                     } else if let Some(current) = model_in_use {
                         ui.horizontal_wrapped(|ui| {
@@ -712,11 +728,21 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                                 app.add_backend(craft_anything_ai::BackendConfig { name, ..d.suggestion.clone() }, None);
                             }
                         }
-                    } else if !d.needs_key && widgets::primary(ui, "Add").clicked() {
+                    } else if !d.needs_key
+                        && widgets::primary(ui, if d.suggestion.model == "antigravity" { "Add Antigravity" } else { "Add" }).clicked()
+                    {
                         app.add_backend(d.suggestion.clone(), None);
                     }
                 });
             });
+            if d.suggestion.model == "antigravity" && !configured {
+                ui.add_space(4.0);
+                ui.label(
+                    RichText::new(tr("After adding Antigravity, sign in through its own CLI or app. Then use Load models above to display its available choices."))
+                        .color(t.text_faint)
+                        .size(theme::CAPTION),
+                );
+            }
             // A subscription key is worth pasting even when the environment already has one, so a
             // different key can be used without restarting the app.
             let pastable = d.needs_key || d.suggestion.base_url.as_deref().is_some_and(craft_anything_ai::openai::is_opencode_go);
@@ -1055,10 +1081,50 @@ mod tests {
     }
 
     #[test]
+    fn antigravity_model_picker_shows_its_default_and_cli_model_name() {
+        use craft_anything_ai::{AgentModel, BackendEntry, ModelContext};
+        use egui_kittest::{Harness, kittest::Queryable};
+        let context = ModelContext {
+            backend: BackendEntry {
+                config: BackendConfig {
+                    name: "Antigravity".into(),
+                    kind: BackendKind::AgentCli,
+                    model: "antigravity".into(),
+                    base_url: None,
+                    ssh_host: None,
+                    enabled: true,
+                },
+                options: Default::default(),
+            },
+            directory: None,
+        };
+        let mut picker = AgentModelPicker {
+            request: 1,
+            context,
+            model: None,
+            thinking: None,
+            result: Some(Ok(vec![AgentModel {
+                id: "gemini-4-argon".into(),
+                name: "Gemini 4 Argon".into(),
+                thinking: vec![craft_anything_ai::Effort::Medium, craft_anything_ai::Effort::High],
+            }])),
+        };
+        let harness = Harness::builder().build_ui(move |ui| {
+            theme::install_fonts(ui.ctx());
+            crate::builders::agent_model_picker(ui, &mut picker);
+        });
+        harness.get_by_label("Model").click();
+        harness.run_steps(3);
+        harness.get_by_label("Antigravity default");
+        harness.get_by_label("Gemini 4 Argon · gemini-4-argon");
+        harness.get_by_label("Thinking depth");
+    }
+
+    #[test]
     fn shared_picker_warnings_name_the_configured_agent() {
         use craft_anything_ai::{BackendEntry, ModelContext};
         use egui_kittest::{Harness, kittest::Queryable};
-        for (agent, name) in [("copilot", "GitHub Copilot"), ("opencode", "OpenCode")] {
+        for (agent, name) in [("copilot", "GitHub Copilot"), ("opencode", "OpenCode"), ("antigravity", "Antigravity")] {
             let context = ModelContext {
                 backend: BackendEntry {
                     config: BackendConfig {
