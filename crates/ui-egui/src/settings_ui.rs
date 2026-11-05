@@ -464,11 +464,7 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                                 }
                             });
                         } else {
-                            let label = if b.model == "antigravity" && options.and_then(|o| o.cli_model.as_ref()).is_none() {
-                                "Check connection & models"
-                            } else {
-                                "Change…"
-                            };
+                            let label = if b.model == "antigravity" { "Check connection & models" } else { "Change…" };
                             if widgets::link(ui, label).clicked() {
                                 pick_agent_model = Some(b.name.clone());
                             }
