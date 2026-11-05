@@ -167,7 +167,7 @@ mod tests {
         let input: Value = serde_json::from_str(&Antigravity.stdin_text("PRE ", "analyse repo")).unwrap();
         assert_eq!(input["event"], "user");
         assert_eq!(input["message"]["content"], "PRE analyse repo");
-        assert_eq!(Antigravity.required_flags(), (&["--help"][..], &["--output-format", "stream-json"][..]));
+        assert_eq!(Antigravity.required_flags(), (&["--help"][..], &["--input-format", "--output-format", "stream-json"][..]));
         assert!(AgentAdapters::built_in().for_agent("antigravity").ids().contains(&"antigravity"));
         assert!(AgentAdapters::built_in().for_agent("agy").ids().contains(&"agy"));
     }
