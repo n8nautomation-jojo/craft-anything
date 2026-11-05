@@ -375,11 +375,12 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                     }
                     if b.model == "antigravity" {
                         ui.add_space(4.0);
-                        ui.label(
-                            RichText::new(tr("Sign in with your Google account in Antigravity, or run `agy` in a terminal once. Craft Anything never reads or stores your Google sign-in credentials."))
-                                .color(t.text_faint)
-                                .size(theme::CAPTION),
-                        );
+                        let sign_in_hint = if b.ssh_host.as_deref().is_some_and(|host| !host.trim().is_empty()) {
+                            "The Antigravity CLI on this remote computer must be installed and signed in. Check connection & models to verify it."
+                        } else {
+                            "Sign in with your Google account in Antigravity, or run `agy` in a terminal once. Craft Anything never reads or stores your Google sign-in credentials."
+                        };
+                        ui.label(RichText::new(tr(sign_in_hint)).color(t.text_faint).size(theme::CAPTION));
                     }
                     // The folder it keeps its sign-in in (Claude Code's CLAUDE_CONFIG_DIR), typed
                     // so `~/` and hidden folders work, here or over SSH: another folder is another
