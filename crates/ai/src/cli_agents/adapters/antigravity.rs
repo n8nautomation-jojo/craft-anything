@@ -5,6 +5,7 @@
 //! `always-proceed`: that flag approves every tool call, bypassing the person's permission policy.
 
 use super::*;
+use crate::model::Effort;
 
 pub struct Antigravity;
 
