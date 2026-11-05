@@ -210,15 +210,21 @@ mod tests {
         let default_opts = BackendOptions::default();
         assert_eq!(args(false, None, &default_opts), ["--input-format", "stream-json", "--output-format", "stream-json"]);
 
-        let builder_opts =
-            BackendOptions { cli_model: Some("Gemini 3.8 Flash (Medium)".into()), args: vec!["--add-dir".into(), "/repo".into()], ..Default::default() };
+        let builder_opts = BackendOptions {
+            cli_model: Some("gemini-3.8-flash".into()),
+            cli_thinking: Some(Effort::Medium),
+            args: vec!["--add-dir".into(), "/repo".into()],
+            ..Default::default()
+        };
         assert_eq!(
             args(true, Some("conv-123"), &builder_opts),
             [
                 "--add-dir",
                 "/repo",
                 "--model",
-                "Gemini 3.8 Flash (Medium)",
+                "gemini-3.8-flash",
+                "--effort",
+                "medium",
                 "--conversation",
                 "conv-123",
                 "--input-format",
@@ -244,10 +250,11 @@ mod tests {
     #[test]
     fn model_catalog_parsing_groups_slugs_into_model_and_effort_choices() {
         let models = parse_models(
-            "gemini-4-argon-high       Gemini 4 Argon (High)\\n\
-             gemini-4-argon-medium    Gemini 4 Argon (Medium)\\n\
-             gemini-3.8-flash-high    Gemini 3.8 Flash (High)\\n\
-             gemini-3.8-flash-medium  Gemini 3.8 Flash (Medium)\\n"
+            r#"gemini-4-argon-high       Gemini 4 Argon (High)
+gemini-4-argon-medium    Gemini 4 Argon (Medium)
+gemini-3.8-flash-high    Gemini 3.8 Flash (High)
+gemini-3.8-flash-medium  Gemini 3.8 Flash (Medium)
+"#,
         )
         .unwrap();
         assert_eq!(models.len(), 2);
