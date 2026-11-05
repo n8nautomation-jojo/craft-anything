@@ -162,9 +162,8 @@ exists but hasn't been verified on a real install yet. **GitHub Copilot** can us
 Copilot CLI through ACP: sign in separately with `copilot login`. Other agents that speak ACP (Gemini CLI,
 Qwen Code, opencode, goose, Hermes, Maki) can be switched to it per backend; of those, only Maki has
 been run live. Antigravity (`agy`) also has a native headless CLI adapter; it is blocked in Clean
-room and requires an explicit switch to Deep mode. Settings → AI can check the signed-in CLI,
-load its available models and effort variants, and save a selected model for builds; sign-in remains
-inside Antigravity. Its questions are disabled until a read-only, independent-session path is verified,
+room and requires an explicit switch to Deep mode. Settings → AI can load its available models and effort variants from `agy models`, then save a
+selected model for builds; sign-in remains inside Antigravity. Its questions are disabled until a read-only, independent-session path is verified,
 and its permissions are not yet governed by Craft Anything's cross-agent approval boundary; see
 [docs/antigravity.md](docs/antigravity.md).
 Anthropic, OpenAI, OpenRouter and local OpenAI-compatible servers are available for questions and
