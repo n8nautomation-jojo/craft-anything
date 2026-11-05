@@ -1,6 +1,7 @@
 //! Antigravity (`agy`). Flags are checked against `agy --help`.
 //!
-//! Antigravity runs prompts non-interactively with `--output-format stream-json -p <prompt>`.
+//! Antigravity runs prompts non-interactively with `--input-format stream-json` and
+//! `--output-format stream-json`, sending each prompt as a user event over stdin.
 //! The adapter deliberately preserves Antigravity's own permission configuration. It never forces
 //! `always-proceed`: that flag approves every tool call, bypassing the person's permission policy.
 
