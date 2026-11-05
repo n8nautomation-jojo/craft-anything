@@ -373,6 +373,14 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                             }
                         });
                     }
+                    if b.model == "antigravity" {
+                        ui.add_space(4.0);
+                        ui.label(
+                            RichText::new(tr("Sign in with your Google account in Antigravity, or run `agy` in a terminal once. Craft Anything never reads or stores your Google sign-in credentials."))
+                                .color(t.text_faint)
+                                .size(theme::CAPTION),
+                        );
+                    }
                     // The folder it keeps its sign-in in (Claude Code's CLAUDE_CONFIG_DIR), typed
                     // so `~/` and hidden folders work, here or over SSH: another folder is another
                     // account. Saved on Enter or when the field is left; empty is its usual one.
@@ -430,7 +438,11 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                         let current = options
                             .and_then(|o| o.cli_model.as_deref())
                             .map(str::to_string)
-                            .unwrap_or_else(|| if b.model == "opencode" { tr("OpenCode default") } else { tr("Model default") });
+                            .unwrap_or_else(|| match b.model.as_str() {
+                                "opencode" => tr("OpenCode default"),
+                                "antigravity" => tr("Antigravity default"),
+                                _ => tr("Model default"),
+                            });
                         ui.label(trf("Model: {model}", &[("model", &current)]));
                         let thinking = options.and_then(|o| o.cli_thinking).map(|d| d.title().to_string()).unwrap_or_else(|| tr("Model default"));
                         ui.label(format!("{}: {thinking}", tr("Thinking depth")));
@@ -450,8 +462,15 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                                     close_picker = true;
                                 }
                             });
-                        } else if widgets::link(ui, "Change…").clicked() {
-                            pick_agent_model = Some(b.name.clone());
+                        } else {
+                            let label = if b.model == "antigravity" && options.and_then(|o| o.cli_model.as_ref()).is_none() {
+                                "Check connection & models"
+                            } else {
+                                "Change…"
+                            };
+                            if widgets::link(ui, label).clicked() {
+                                pick_agent_model = Some(b.name.clone());
+                            }
                         }
                     } else if let Some(current) = model_in_use {
                         ui.horizontal_wrapped(|ui| {
@@ -712,7 +731,9 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                                 app.add_backend(craft_anything_ai::BackendConfig { name, ..d.suggestion.clone() }, None);
                             }
                         }
-                    } else if !d.needs_key && widgets::primary(ui, "Add").clicked() {
+                    } else if !d.needs_key
+                        && widgets::primary(ui, if d.suggestion.model == "antigravity" { "Add Antigravity" } else { "Add" }).clicked()
+                    {
                         app.add_backend(d.suggestion.clone(), None);
                     }
                 });
