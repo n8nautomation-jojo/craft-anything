@@ -755,7 +755,7 @@ fn run_cli(spec: &CliSpec, text: &str, retry: bool, tx: &Sender<AgentEvent>, sto
         None => spec.adapters.for_backend(&agent, &spec.options),
         Some(_) => spec.adapters.for_agent(&agent),
     };
-    if adapter.requires_deep_mode() && !spec.deep {
+    if adapter.requires_deep_mode() && !spec.deep && !spec.question {
         let _ = tx.send(AgentEvent::Error {
             message: format!("{name} cannot be constrained by Craft Anything's Clean room permissions yet."),
             remediation: Some("Switch this project to Deep mode explicitly, or choose an agent that is integrated with Craft Anything's Clean room approvals.".into()),
