@@ -53,5 +53,5 @@ Antigravity is deliberately not enabled for Craft Anything's read-only project-q
 - No live authentication-status check in Craft Anything.
 - No Antigravity-specific model catalogue or reasoning-effort picker yet; a configured `cli_model` is forwarded, otherwise the CLI's own default applies.
 - No read-only project-question support.
-- No verified mapping from Craft Anything's Clean room/Deep approval policy to Antigravity permissions.
+- No unified mapping from Craft Anything's Deep-mode approval inbox to Antigravity's native permission ACL; Clean room is blocked before launch.
 - No live CLI run has been claimed as part of this change; unit tests and platform builds must be run in the repository CI or a development environment with Rust installed.
