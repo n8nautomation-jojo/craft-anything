@@ -56,12 +56,6 @@ impl AgentAdapter for Antigravity {
         false
     }
 
-    /// The headless CLI has no verified, repository-enforced read-only/fork path for questions.
-    /// Keep questions refused by the shared runner rather than trusting `--mode plan`.
-    fn answers_questions(&self) -> bool {
-        false
-    }
-
     fn requires_deep_mode(&self) -> bool {
         true
     }
