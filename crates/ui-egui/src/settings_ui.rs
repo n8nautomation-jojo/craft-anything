@@ -376,9 +376,9 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                     if b.model == "antigravity" {
                         ui.add_space(4.0);
                         let sign_in_hint = if b.ssh_host.as_deref().is_some_and(|host| !host.trim().is_empty()) {
-                            "The Antigravity CLI on this remote computer must be installed and signed in. Check connection & models to verify it."
+                            "The Antigravity CLI must be installed on this remote computer and signed in there. Load models below to read the CLI's available choices."
                         } else {
-                            "Sign in with your Google account in Antigravity, or run `agy` in a terminal once. Craft Anything never reads or stores your Google sign-in credentials."
+                            "Sign in with your Google account in Antigravity App or run `agy` in a terminal once. Then load the CLI's model choices below. Craft Anything never reads or stores your Google sign-in credentials."
                         };
                         ui.label(RichText::new(tr(sign_in_hint)).color(t.text_faint).size(theme::CAPTION));
                     }
@@ -464,7 +464,7 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
                                 }
                             });
                         } else {
-                            let label = if b.model == "antigravity" { "Check connection & models" } else { "Change…" };
+                            let label = if b.model == "antigravity" { "Load models" } else { "Change…" };
                             if widgets::link(ui, label).clicked() {
                                 pick_agent_model = Some(b.name.clone());
                             }
@@ -738,7 +738,7 @@ fn ai(app: &mut CraftApp, ui: &mut Ui) {
             if d.suggestion.model == "antigravity" && !configured {
                 ui.add_space(4.0);
                 ui.label(
-                    RichText::new(tr("After adding Antigravity, sign in through its own CLI or app. Then use Check connection & models above to load your available models."))
+                    RichText::new(tr("After adding Antigravity, sign in through its own CLI or app. Then use Load models above to display its available choices."))
                         .color(t.text_faint)
                         .size(theme::CAPTION),
                 );
