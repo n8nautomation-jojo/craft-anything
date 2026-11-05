@@ -35,7 +35,7 @@ impl AgentAdapter for Antigravity {
 
     fn stdin_text(&self, preamble: &str, prompt: &str) -> String {
         let message = format!("{preamble}{prompt}");
-        format!("{}\\n", json!({"event": "user", "message": {"content": message}}))
+        format!("{}\n", json!({"event": "user", "message": {"content": message}}))
     }
 
     fn required_flags(&self) -> (&'static [&'static str], &'static [&'static str]) {
