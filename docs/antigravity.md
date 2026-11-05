@@ -33,9 +33,9 @@ See Google's [MCP configuration guide](https://antigravity.google/docs/mcp?tab=c
 
 ## Sign-in and credentials
 
-Headless runs use the CLI's cached credentials. Sign in through an interactive Antigravity CLI session first, following Google's [authentication instructions](https://antigravity.google/docs/cli/headless).
+Headless runs use the CLI's cached credentials. Sign in through the Antigravity App or an interactive `agy` session first. Google documents a unified local sign-in layer shared by the App and CLI; on a remote SSH host, run `agy` on that host and complete its browser URL/code flow. See Google's [authentication instructions](https://antigravity.google/docs/cli/install).
 
-Craft Anything launches the user's installed `agy` executable. It does not extract, copy, persist, or forward Google OAuth tokens, and it does not create a separate Google login flow. In Settings → AI, **Check connection & models** invokes `agy models` with bounded time and output; if the CLI can list the signed-in account's models, the picker displays them. This is a real CLI request, not a token inspection or an independent OAuth status API. Authentication failures are returned as connection errors with a sign-in hint.
+Craft Anything launches the user's installed `agy` executable. It does not extract, copy, persist, or forward Google OAuth tokens, and it does not create a separate Google login flow. In Settings → AI, **Load models** invokes `agy models` with bounded time and output and displays the model choices returned by the CLI. This checks that the CLI command can run and provide its catalogue; it does not inspect tokens or independently prove that a model request will authenticate. Authentication failures during model use are reported by the CLI with a sign-in hint.
 
 ## Permission and safety boundaries
 
