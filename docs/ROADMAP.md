@@ -494,7 +494,7 @@ Owner: open · Status: in progress
       and model-with-variant command forms, and share transport selection between preflight and runs.
 - [x] Rebase after #567 and translate the ten model-selection strings and two agent tool titles
       in the Russian catalogue, restoring coverage and catalogue key parity.
-- [ ] Antigravity hardening: preserve the user's native permission policy (never force always-proceed), retain the documented shared global skills path while making setup detection CLI-specific, stream long prompts over stdin, and parse aggregate usage counts without double-counting cache/thinking. Keep questions blocked until a supported read-only, independent-session path exists. — claimed: ChatGPT agent, branch `feature/r2.2-antigravity-hardening`
+- [ ] Antigravity hardening and Settings integration: preserve the user's native permission policy (never force always-proceed), retain the documented shared global skills path while making setup detection CLI-specific, stream long prompts over stdin, parse aggregate usage counts, load model/effort variants from the signed-in `agy models` CLI, and connect Settings → AI model selection to saved backend options consumed by the builder. Keep questions blocked until a supported read-only, independent-session path exists. — claimed: ChatGPT agent, branch `feature/r2.2-antigravity-hardening`
 - [ ] Supply and verify the run's Craft Anything MCP server in native OpenCode before enabling
       explicit model/thinking execution (currently refused for chat and builds, locally and over SSH).
 - [ ] Verify OpenCode model discovery and an explicit thinking selection on a live SSH host,
